@@ -1,11 +1,16 @@
-function Auth({ onLogin }) {
-  const [modo, setModo] = React.useState("login");
+import { useState } from 'react'
+import { supabase } from './lib/supabase'
 
-  const [form, setForm] = React.useState({
+export default function Auth() {
+  const [modo, setModo] = useState("login");
+
+  const [form, setForm] = useState({
     nombre: "",
     correo: "",
     contraseña: "",
   });
+
+  const [error, setError] = useState("");
 
   const cambiarInput = (e) => {
     setForm({
@@ -14,16 +19,30 @@ function Auth({ onLogin }) {
     });
   };
 
-  const enviarFormulario = (e) => {
+  const enviarFormulario = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (modo === "login") {
-      alert(`Bienvenido ${form.correo}`);
-    } else {
-      alert(`Cuenta creada para ${form.nombre}`);
+    const { error } =
+      modo === "login"
+        ? await supabase.auth.signInWithPassword({
+            email: form.correo,
+            password: form.contraseña,
+          })
+        : await supabase.auth.signUp({
+            email: form.correo,
+            password: form.contraseña,
+            options: { data: { nombre: form.nombre } },
+          });
+
+    if (error) {
+      setError(error.message);
+      return;
     }
 
-    onLogin(form);
+    if (modo === "register") {
+      alert(`Cuenta creada para ${form.nombre}. Revisa tu correo si se requiere confirmación.`);
+    }
   };
 
   return (
@@ -87,7 +106,10 @@ function Auth({ onLogin }) {
           onChange={cambiarInput}
           className="input"
           required
+          minLength={6}
         />
+
+        {error && <p className="error">{error}</p>}
 
         <button
           type="submit"
@@ -142,5 +164,3 @@ function Auth({ onLogin }) {
     </div>
   );
 }
-
-window.Auth = Auth;
