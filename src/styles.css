@@ -152,6 +152,12 @@ body {
   margin: 8px 0 25px;
 }
 
+.error {
+  color: #ed4956;
+
+  font-size: 13px;
+}
+
 
 
 .form {
