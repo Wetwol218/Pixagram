@@ -46,6 +46,7 @@ export default function Auth() {
   };
 
   return (
+    <div className="auth-page">
     <div className="auth-container">
 
       <div className="logo">
@@ -161,6 +162,7 @@ export default function Auth() {
 
       </div>
 
+    </div>
     </div>
   );
 }
