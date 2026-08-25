@@ -2,10 +2,66 @@ import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import Auth from './Auth.jsx'
 
+const deletePost = async (postId) => {
+  const { error } = await supabase.from('posts').delete().eq('id', postId)
+  if (error) console.error('Error al eliminar:', error)
+}
+
+const toggleReaction = async (postId, userId, type) => {
+  const { data: existing } = await supabase
+    .from('reactions')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('user_id', userId)
+    .eq('type', type)
+    .single()
+
+  if (existing) {
+    await supabase.from('reactions').delete().eq('id', existing.id)
+  } else {
+    await supabase.from('reactions').insert({ post_id: postId, user_id: userId, type })
+  }
+}
+
+const addComment = async (postId, userId, userName, text) => {
+  if (!text.trim()) return
+  const { error } = await supabase
+    .from('comments')
+    .insert({ post_id: postId, user_id: userId, user_name: userName, text })
+  if (error) console.error('Error al comentar:', error)
+}
+
+const uploadPost = async (file, userId, userName) => {
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('photos')
+    .upload(fileName, file)
+
+  if (uploadError) {
+    console.error('Error al subir foto:', uploadError)
+    return null
+  }
+
+  const { data } = supabase.storage.from('photos').getPublicUrl(fileName)
+
+  const { error: dbError } = await supabase.from('posts').insert({
+    user_id: userId,
+    user_name: userName,
+    image_url: data.publicUrl,
+    created_at: new Date().toISOString(),
+  })
+
+  if (dbError) console.error('Error al guardar post:', dbError)
+  return data.publicUrl
+}
+
 export default function App() {
   const [session, setSession] = useState(undefined) // undefined = cargando, null = sin sesión
-  const [posts, setPosts] = useState([]) // TODO: COMPONENTE DE LOOP - cargar posts desde Supabase
-  const [comments, setComments] = useState({}) // TODO: almacenar comentarios por post_id
+  const [posts, setPosts] = useState([])
+  const [comments, setComments] = useState({})
+  const [commentTexts, setCommentTexts] = useState({}) // guarda el texto siendo escrito por post
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -14,6 +70,55 @@ export default function App() {
     })
     return () => subscription.subscription.unsubscribe()
   }, [])
+
+  // Cargar posts desde Supabase
+  useEffect(() => {
+    const loadPosts = async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error al cargar posts:', error)
+        return
+      }
+
+      setPosts(data || [])
+    }
+
+    if (session) loadPosts()
+  }, [session])
+
+  // Cargar comentarios por post
+  useEffect(() => {
+    const loadComments = async () => {
+      if (posts.length === 0) return
+
+      const postIds = posts.map(p => p.id)
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .in('post_id', postIds)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error al cargar comentarios:', error)
+        return
+      }
+
+      const commentsByPost = {}
+      data?.forEach(comment => {
+        if (!commentsByPost[comment.post_id]) {
+          commentsByPost[comment.post_id] = []
+        }
+        commentsByPost[comment.post_id].push(comment)
+      })
+      setComments(commentsByPost)
+    }
+
+    loadComments()
+  }, [posts])
 
   if (session === undefined) return null
 
@@ -38,10 +143,30 @@ export default function App() {
       <main className="feed">
 
         {/* TODO 3: COMPONENTE DE SUBIDA - Agregar componente para seleccionar y subir imágenes a Supabase Storage */}
-        {/* Usa supabase.storage.from("photos").upload() */}
         <section className="uploadCard">
-          <label>📷 Seleccionar foto</label>
-          {/* input file y botón de publicar irán aquí */}
+          <label htmlFor="fileInput">📷 Seleccionar foto</label>
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                const userName = session.user.user_metadata?.nombre || 'Usuario'
+                await uploadPost(file, session.user.id, userName)
+                const { data } = await supabase
+                  .from('posts')
+                  .select('*')
+                  .order('created_at', { ascending: false })
+                setPosts(data || [])
+                e.target.value = ''
+              }
+            }}
+          />
+          <button type="button" onClick={() => document.getElementById('fileInput').click()}>
+            Publicar foto
+          </button>
         </section>
 
         {/* TODO 1: LOOP DE POSTS - Cargar posts desde la tabla 'posts' en Supabase */}
@@ -60,15 +185,18 @@ export default function App() {
                 {/* TODO 2: COMPONENTE DE POST - Mostrar imagen, usuario y fecha */}
                 <div className="postHeader">
                   <div className="postUser">
-                    <div className="avatar">P</div>
+                    <div className="avatar">{post.user_name?.[0] || 'U'}</div>
                     <div>
-                      <strong>Usuario</strong>
+                      <strong>{post.user_name || 'Usuario'}</strong>
                       <small>{new Date(post.created_at).toLocaleString()}</small>
                     </div>
                   </div>
                   {/* TODO 4: BOTÓN DE ELIMINAR - Solo visible si es el dueño del post */}
                   {post.user_id === session.user.id && (
-                    <button className="deleteButton">🗑️ Eliminar</button>
+                    <button type="button" className="deleteButton" onClick={() => {
+                      deletePost(post.id)
+                      setPosts(posts.filter(p => p.id !== post.id))
+                    }}>🗑️ Eliminar</button>
                   )}
                 </div>
 
@@ -77,15 +205,23 @@ export default function App() {
 
                 {/* TODO 5: ACCIONES - Like/Dislike con contadores */}
                 <div className="actions">
-                  <button>
+                  <button type="button" onClick={async () => {
+                    await toggleReaction(post.id, session.user.id, 'like')
+                    const { data } = await supabase.from('posts').select('*').eq('id', post.id).single()
+                    setPosts(posts.map(p => p.id === post.id ? data : p))
+                  }}>
                     ❤️
                     <span>{post.reactions?.filter(r => r.type === "like").length || 0}</span>
                   </button>
-                  <button>
+                  <button type="button" onClick={async () => {
+                    await toggleReaction(post.id, session.user.id, 'dislike')
+                    const { data } = await supabase.from('posts').select('*').eq('id', post.id).single()
+                    setPosts(posts.map(p => p.id === post.id ? data : p))
+                  }}>
                     👎
                     <span>{post.reactions?.filter(r => r.type === "dislike").length || 0}</span>
                   </button>
-                  <button>
+                  <button type="button">
                     💬
                     <span>{comments[post.id]?.length || 0}</span>
                   </button>
@@ -95,9 +231,9 @@ export default function App() {
                 <div className="comments">
                   {comments[post.id]?.map(comment => (
                     <div className="comment" key={comment.id}>
-                      <div className="commentAvatar">P</div>
+                      <div className="commentAvatar">{comment.user_name?.[0] || 'U'}</div>
                       <div className="commentContent">
-                        <strong>Usuario</strong>
+                        <strong>{comment.user_name || 'Usuario'}</strong>
                         <p>{comment.text}</p>
                       </div>
                     </div>
@@ -105,8 +241,19 @@ export default function App() {
                 </div>
 
                 <div className="commentInput">
-                  <input type="text" placeholder="Escribe un comentario..." maxLength={500} />
-                  <button>Publicar</button>
+                  <input
+                    type="text"
+                    placeholder="Escribe un comentario..."
+                    maxLength={500}
+                    value={commentTexts[post.id] || ''}
+                    onChange={(e) => setCommentTexts({ ...commentTexts, [post.id]: e.target.value })}
+                  />
+                  <button type="button" onClick={async () => {
+                    await addComment(post.id, session.user.id, session.user.user_metadata?.nombre || 'Usuario', commentTexts[post.id])
+                    setCommentTexts({ ...commentTexts, [post.id]: '' })
+                    const { data } = await supabase.from('comments').select('*').eq('post_id', post.id).order('created_at', { ascending: true })
+                    setComments({ ...comments, [post.id]: data || [] })
+                  }}>Publicar</button>
                 </div>
 
               </article>
