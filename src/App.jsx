@@ -4,7 +4,7 @@ import Auth from './Auth.jsx'
 
 const deletePost = async (postId) => {
   const { error } = await supabase.from('posts').delete().eq('id', postId)
-  if (error) console.error('Error al eliminar:', error)
+  return !error
 }
 
 const toggleReaction = async (postId, userId, type) => {
@@ -25,11 +25,11 @@ const toggleReaction = async (postId, userId, type) => {
 }
 
 const addComment = async (postId, userId, userName, text) => {
-  if (!text.trim()) return
+  if (!text.trim()) return false
   const { error } = await supabase
     .from('comments')
     .insert({ post_id: postId, user_id: userId, user_name: userName, text })
-  if (error) console.error('Error al comentar:', error)
+  return !error
 }
 
 const uploadPost = async (file, userId, userName) => {
@@ -143,7 +143,6 @@ export default function App() {
       {/* MAIN FEED */}
       <main className="feed">
 
-        {/* TODO 3: COMPONENTE DE SUBIDA - Agregar componente para seleccionar y subir imágenes a Supabase Storage */}
         <section className="uploadCard">
           <label htmlFor="fileInput">📷 Seleccionar foto</label>
           <input
@@ -176,8 +175,6 @@ export default function App() {
           </button>
         </section>
 
-        {/* TODO 1: LOOP DE POSTS - Cargar posts desde la tabla 'posts' en Supabase */}
-        {/* Escucha cambios en tiempo real si quieres */}
         {posts.length === 0 ? (
           <div className="empty">
             <span>📸</span>
@@ -189,7 +186,6 @@ export default function App() {
             {posts.map(post => (
               <article className="post" key={post.id}>
 
-                {/* TODO 2: COMPONENTE DE POST - Mostrar imagen, usuario y fecha */}
                 <div className="postHeader">
                   <div className="postUser">
                     <div className="avatar">{post.user_name?.[0] || 'U'}</div>
@@ -198,19 +194,20 @@ export default function App() {
                       <small>{new Date(post.created_at).toLocaleString()}</small>
                     </div>
                   </div>
-                  {/* TODO 4: BOTÓN DE ELIMINAR - Solo visible si es el dueño del post */}
                   {post.user_id === session.user.id && (
-                    <button type="button" className="deleteButton" onClick={() => {
-                      deletePost(post.id)
-                      setPosts(posts.filter(p => p.id !== post.id))
+                    <button type="button" className="deleteButton" onClick={async () => {
+                      const success = await deletePost(post.id)
+                      if (success) {
+                        setPosts(posts.filter(p => p.id !== post.id))
+                      } else {
+                        console.error('Error al eliminar post')
+                      }
                     }}>🗑️ Eliminar</button>
                   )}
                 </div>
 
-                {/* Imagen del post */}
                 <img className="postImage" src={post.image_url} alt="Publicación" />
 
-                {/* TODO 5: ACCIONES - Like/Dislike con contadores */}
                 <div className="actions">
                   <button type="button" onClick={async () => {
                     const isAdding = await toggleReaction(post.id, session.user.id, 'like')
@@ -240,7 +237,6 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* TODO 6: SECCIÓN DE COMENTARIOS - Mostrar y agregar comentarios */}
                 <div className="comments">
                   {comments[post.id]?.map(comment => (
                     <div className="comment" key={comment.id}>
@@ -265,10 +261,13 @@ export default function App() {
                     const text = commentTexts[post.id]
                     if (!text.trim()) return
                     const userName = session.user.user_metadata?.nombre || 'Usuario'
-                    await addComment(post.id, session.user.id, userName, text)
                     const newComment = { id: Date.now(), post_id: post.id, user_id: session.user.id, user_name: userName, text }
                     setComments({ ...comments, [post.id]: [...(comments[post.id] || []), newComment] })
                     setCommentTexts({ ...commentTexts, [post.id]: '' })
+                    const success = await addComment(post.id, session.user.id, userName, text)
+                    if (!success) {
+                      setComments({ ...comments, [post.id]: (comments[post.id] || []).slice(0, -1) })
+                    }
                   }}>Publicar</button>
                 </div>
 
