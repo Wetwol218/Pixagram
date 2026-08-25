@@ -21,6 +21,7 @@ const toggleReaction = async (postId, userId, type) => {
   } else {
     await supabase.from('reactions').insert({ post_id: postId, user_id: userId, type })
   }
+  return !existing
 }
 
 const addComment = async (postId, userId, userName, text) => {
@@ -76,7 +77,7 @@ export default function App() {
     const loadPosts = async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('*, reactions(*)')
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -154,12 +155,18 @@ export default function App() {
               const file = e.target.files?.[0]
               if (file) {
                 const userName = session.user.user_metadata?.nombre || 'Usuario'
-                await uploadPost(file, session.user.id, userName)
-                const { data } = await supabase
-                  .from('posts')
-                  .select('*')
-                  .order('created_at', { ascending: false })
-                setPosts(data || [])
+                const url = await uploadPost(file, session.user.id, userName)
+                if (url) {
+                  const newPost = {
+                    id: Date.now(),
+                    user_id: session.user.id,
+                    user_name: userName,
+                    image_url: url,
+                    created_at: new Date().toISOString(),
+                    reactions: []
+                  }
+                  setPosts([newPost, ...posts])
+                }
                 e.target.value = ''
               }
             }}
@@ -206,17 +213,23 @@ export default function App() {
                 {/* TODO 5: ACCIONES - Like/Dislike con contadores */}
                 <div className="actions">
                   <button type="button" onClick={async () => {
-                    await toggleReaction(post.id, session.user.id, 'like')
-                    const { data } = await supabase.from('posts').select('*').eq('id', post.id).single()
-                    setPosts(posts.map(p => p.id === post.id ? data : p))
+                    const isAdding = await toggleReaction(post.id, session.user.id, 'like')
+                    const reactions = post.reactions || []
+                    const updated = isAdding
+                      ? [...reactions, { type: 'like', user_id: session.user.id, post_id: post.id }]
+                      : reactions.filter(r => !(r.type === 'like' && r.user_id === session.user.id))
+                    setPosts(posts.map(p => p.id === post.id ? { ...p, reactions: updated } : p))
                   }}>
                     ❤️
                     <span>{post.reactions?.filter(r => r.type === "like").length || 0}</span>
                   </button>
                   <button type="button" onClick={async () => {
-                    await toggleReaction(post.id, session.user.id, 'dislike')
-                    const { data } = await supabase.from('posts').select('*').eq('id', post.id).single()
-                    setPosts(posts.map(p => p.id === post.id ? data : p))
+                    const isAdding = await toggleReaction(post.id, session.user.id, 'dislike')
+                    const reactions = post.reactions || []
+                    const updated = isAdding
+                      ? [...reactions, { type: 'dislike', user_id: session.user.id, post_id: post.id }]
+                      : reactions.filter(r => !(r.type === 'dislike' && r.user_id === session.user.id))
+                    setPosts(posts.map(p => p.id === post.id ? { ...p, reactions: updated } : p))
                   }}>
                     👎
                     <span>{post.reactions?.filter(r => r.type === "dislike").length || 0}</span>
@@ -249,10 +262,13 @@ export default function App() {
                     onChange={(e) => setCommentTexts({ ...commentTexts, [post.id]: e.target.value })}
                   />
                   <button type="button" onClick={async () => {
-                    await addComment(post.id, session.user.id, session.user.user_metadata?.nombre || 'Usuario', commentTexts[post.id])
+                    const text = commentTexts[post.id]
+                    if (!text.trim()) return
+                    const userName = session.user.user_metadata?.nombre || 'Usuario'
+                    await addComment(post.id, session.user.id, userName, text)
+                    const newComment = { id: Date.now(), post_id: post.id, user_id: session.user.id, user_name: userName, text }
+                    setComments({ ...comments, [post.id]: [...(comments[post.id] || []), newComment] })
                     setCommentTexts({ ...commentTexts, [post.id]: '' })
-                    const { data } = await supabase.from('comments').select('*').eq('post_id', post.id).order('created_at', { ascending: true })
-                    setComments({ ...comments, [post.id]: data || [] })
                   }}>Publicar</button>
                 </div>
 
