@@ -1,396 +1,346 @@
 * {
   box-sizing: border-box;
 }
-
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
+ 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: #fafafa;
+  color: #262626;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
-
-/* =========================
-   CONTENEDOR PRINCIPAL
-========================= */
-
-.app,
-.auth-page {
-  width: 100%;
+ 
+.app {
   min-height: 100vh;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  padding: 20px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #feda75 0%,
-      #fa7e1e 25%,
-      #d62976 50%,
-      #962fbf 75%,
-      #4f5bd5 100%
-    );
+  background: #fafafa;
 }
-
-/* =========================
-   CAJA DE LOGIN
-========================= */
-
-.auth-container {
-  width: min(100%, 400px);
-
+ 
+/* ---------- HEADER ---------- */
+ 
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 20px;
   background: #ffffff;
-
-  padding: clamp(25px, 5vw, 40px);
-
-  border-radius: clamp(15px, 4vw, 22px);
-
-  text-align: center;
-
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid #dbdbdb;
 }
-
-/* =========================
-   LOGO
-========================= */
-
-.logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  gap: 10px;
-
-  margin-bottom: 20px;
-}
-
-.logo h1 {
+ 
+.header h1 {
   margin: 0;
-
-  font-size: clamp(28px, 7vw, 34px);
-
-  background:
-    linear-gradient(
-      45deg,
-      #feda75,
-      #fa7e1e,
-      #d62976,
-      #962fbf,
-      #4f5bd5
-    );
-
+  font-size: 24px;
+  font-weight: 600;
+  font-family: 'Brush Script MT', cursive;
+  background: linear-gradient(45deg, #405de6, #5b51d8, #833ab4, #c13584, #e1306c, #fd1d1d);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
-
-.logo-icon {
-  width: 40px;
-  height: 40px;
-
-  flex-shrink: 0;
-
-  border: 4px solid #d62976;
-
-  border-radius: 12px;
-
-  position: relative;
-}
-
-.logo-circulo {
-  width: 16px;
-  height: 16px;
-
-  border: 3px solid #d62976;
-
-  border-radius: 50%;
-
-  position: absolute;
-
-  top: 8px;
-  left: 8px;
-}
-
-.logo-punto {
-  width: 5px;
-  height: 5px;
-
-  background: #d62976;
-
-  border-radius: 50%;
-
-  position: absolute;
-
-  top: 6px;
-  right: 6px;
-}
-
-.auth-container h2 {
-  margin: 0;
-
-  font-size: clamp(20px, 5vw, 24px);
-
-  color: #222;
-}
-
-.subtitulo {
-  color: #777;
-
+ 
+.logout {
+  border: none;
+  background: transparent;
+  color: #262626;
   font-size: 14px;
-
-  line-height: 1.5;
-
-  margin: 8px 0 25px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
 }
-
-.error {
-  color: #ed4956;
-
-  font-size: 13px;
+ 
+.logout:hover {
+  background: #efefef;
 }
-
-
-
-.form {
-  width: 100%;
-
+ 
+/* ---------- FEED ---------- */
+ 
+.feed {
+  max-width: 470px;
+  margin: 0 auto;
+  padding: 20px 0 60px;
+}
+ 
+/* ---------- SUBIR FOTO ---------- */
+ 
+.uploadCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 0 12px 20px;
+}
+ 
+.uploadCard label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e8e8e;
+}
+ 
+.uploadCard button {
+  border: none;
+  background: linear-gradient(45deg, #405de6, #833ab4, #e1306c);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+ 
+.uploadCard button:hover {
+  opacity: 0.9;
+}
+ 
+/* ---------- ESTADO VACÍO ---------- */
+ 
+.empty {
   display: flex;
   flex-direction: column;
-
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
 }
-
-.input {
-  width: 100%;
-
-  min-height: 48px;
-
-  padding: 13px 15px;
-
-  border-radius: 10px;
-
-  border: 1px solid #ddd;
-
-  outline: none;
-
+ 
+.empty span {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+ 
+.empty h3 {
+  margin: 0 0 4px;
+  color: #262626;
+  font-size: 18px;
+}
+ 
+.empty p {
+  margin: 0;
   font-size: 14px;
-
-  background: #fafafa;
-
-  transition: 0.25s;
 }
-
-.input:focus {
-  border-color: #d62976;
-
-  background: #fff;
-
-  box-shadow:
-    0 0 0 3px rgba(214, 41, 118, 0.12);
+ 
+/* ---------- POSTS ---------- */
+ 
+.posts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
-
-/* =========================
-   BOTÓN
-========================= */
-
-.boton {
-  width: 100%;
-
-  min-height: 48px;
-
-  padding: 13px;
-
-  border: none;
-
-  border-radius: 10px;
-
-  color: white;
-
-  font-weight: bold;
-
-  font-size: 15px;
-
-  cursor: pointer;
-
-  background:
-    linear-gradient(
-      90deg,
-      #833ab4,
-      #e1306c,
-      #f77737
-    );
-
-  transition: 0.3s;
+ 
+.post {
+  background: #ffffff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
 }
-
-.boton:hover {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 8px 20px rgba(214, 41, 118, 0.3);
-}
-
-.boton:active {
-  transform: scale(0.98);
-}
-
-/* =========================
-   SEPARADOR
-========================= */
-
-.separador {
-  width: 100%;
-
+ 
+.postHeader {
   display: flex;
   align-items: center;
-
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+ 
+.postUser {
+  display: flex;
+  align-items: center;
   gap: 10px;
-
-  color: #999;
-
-  margin: 25px 0;
 }
-
-.separador span {
-  flex: 1;
-
-  height: 1px;
-
-  background: #ddd;
+ 
+/* Inicial del usuario en icono circular color cian */
+.avatar,
+.commentAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: #00c2d1;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
 }
-
-.separador p {
-  margin: 0;
-
+ 
+.commentAvatar {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  font-size: 12px;
+}
+ 
+.postUser strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  line-height: 1.3;
+}
+ 
+.postUser small {
+  display: block;
+  font-size: 12px;
+  color: #8e8e8e;
+}
+ 
+.deleteButton {
+  border: none;
+  background: transparent;
+  color: #ed4956;
   font-size: 13px;
-}
-
-/* =========================
-   FACEBOOK
-========================= */
-
-.facebook {
-  border: none;
-
-  background: transparent;
-
-  color: #385898;
-
-  font-weight: bold;
-
-  font-size: 14px;
-
+  font-weight: 600;
   cursor: pointer;
-
-  transition: 0.2s;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
 }
-
-.facebook:hover {
-  opacity: 0.7;
-
-  transform: scale(1.03);
+ 
+.deleteButton:hover {
+  background: #fdecee;
 }
-
-/* =========================
-   CAMBIAR LOGIN / REGISTRO
-========================= */
-
-.cambiar {
+ 
+.postImage {
+  display: block;
   width: 100%;
-
-  margin-top: 30px;
-
-  padding-top: 20px;
-
-  border-top: 1px solid #eee;
-
-  font-size: 14px;
-
-  line-height: 1.6;
-
-  color: #555;
+  max-height: 550px;
+  object-fit: cover;
+  background: #f0f0f0;
 }
-
-.link {
+ 
+/* ---------- ACCIONES (like / dislike / comentarios) ---------- */
+ 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border-top: 1px solid #efefef;
+}
+ 
+.actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border: none;
-
   background: transparent;
-
-  color: #d62976;
-
-  font-weight: bold;
-
-  font-size: 14px;
-
+  font-size: 20px;
   cursor: pointer;
-
-  transition: 0.2s;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+  color: #262626;
 }
-
-.link:hover {
-  color: #833ab4;
-
-  text-decoration: underline;
+ 
+.actions button:hover {
+  background: #f5f5f5;
 }
-
-/* =========================
-   PANTALLAS PEQUEÑAS
-========================= */
-
-@media (max-width: 480px) {
-  .app,
-  .auth-page {
-    padding: 15px;
-  }
-
-  .auth-container {
-    width: 100%;
-
-    padding: 28px 20px;
-  }
-
-  .logo {
-    margin-bottom: 18px;
-  }
-
-  .logo-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .logo-circulo {
-    width: 14px;
-    height: 14px;
-
-    top: 7px;
-    left: 7px;
-  }
-
-  .logo-punto {
-    top: 5px;
-    right: 5px;
-  }
+ 
+.actions button:active {
+  transform: scale(0.92);
 }
-
-/* =========================
-   PANTALLAS MUY PEQUEÑAS
-========================= */
-
-@media (max-height: 600px) {
-  .app,
-  .auth-page {
-    align-items: flex-start;
-
-    padding-top: 20px;
-    padding-bottom: 20px;
+ 
+.actions button span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8e8e8e;
+}
+ 
+/* ---------- COMENTARIOS ---------- */
+ 
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 14px 10px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+ 
+.comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+ 
+.commentContent p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: #262626;
+  word-break: break-word;
+}
+ 
+.commentContent strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+ 
+/* ---------- INPUT DE COMENTARIO ---------- */
+ 
+.commentInput {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid #efefef;
+}
+ 
+.commentInput input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #262626;
+  background: transparent;
+}
+ 
+.commentInput input::placeholder {
+  color: #8e8e8e;
+}
+ 
+.commentInput button {
+  border: none;
+  background: transparent;
+  color: #00a8e8;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 6px;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+ 
+.commentInput button:hover {
+  opacity: 0.7;
+}
+ 
+/* ---------- RESPONSIVE ---------- */
+ 
+@media (max-width: 500px) {
+  .feed {
+    max-width: 100%;
+  }
+ 
+  .uploadCard,
+  .post {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+ 
+  .uploadCard {
+    margin-left: 0;
+    margin-right: 0;
   }
 }
