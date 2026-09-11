@@ -358,7 +358,7 @@ export default function Auth() {
               className="link"
               onClick={() => setModo("login")}
             >
-              Inicia sesión
+              Iniciar sesión
             </button>
           </>
         )}
