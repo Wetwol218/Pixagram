@@ -275,8 +275,7 @@ body {
 .commentContent p {
   margin: 2px 0 0;
   font-size: 14px;
-  /* color: #262626; */
-  color: #274c10;
+  color: #262626; 
   word-break: break-word;
 }
  
