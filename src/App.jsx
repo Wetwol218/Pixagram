@@ -242,7 +242,7 @@ export default function App() {
                     <div className="comment" key={comment.id}>
                       <div className="commentAvatar">{comment.user_name?.[0] || 'U'}</div>
                       <div className="commentContent">
-                        <strong style={comment.user_name === 'Luis Ariño' ? { color: 'black' } : undefined}>{comment.user_name || 'Usuario'}</strong>
+                        <strong style={comment.user_name === '*' ? { color: 'green' } : undefined}>{comment.user_name || 'Usuario'}</strong>
                         <p>{comment.text}</p>
                       </div>
                     </div>
