@@ -114,7 +114,7 @@ export default function App() {
           commentsByPost[comment.post_id] = []
         }
         comment.text=`${new Date(comment.created_at).toLocaleString()}-${comment.text}`
-        commentsByPost[comment.post_id].Push(comment)
+        commentsByPost[comment.post_id].push(comment)
       })
       setComments(commentsByPost)
     }
