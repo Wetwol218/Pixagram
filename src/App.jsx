@@ -113,7 +113,6 @@ export default function App() {
         if (!commentsByPost[comment.post_id]) {
           commentsByPost[comment.post_id] = []
         }
-        comment.text=`${new Date(comment.created_at).toLocaleString()}-${comment.text}`
         commentsByPost[comment.post_id].push(comment)
       })
       setComments(commentsByPost)
